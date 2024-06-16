@@ -1,26 +1,41 @@
-const router = require('express').Router();
+// backend/routes/userLoginRoute.js
+
+const express = require('express');
+const router = express.Router();
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const UserAccount = require('../models/userAccountModel');
+const config = require('../config');
 
-router.route('/').post((req, res) => {
-    const { username, password } = req.body;
+router.post('/', async (req, res) => {
+  const { username, password } = req.body;
 
-    UserAccount.findOne({ username })
-        .then(user => {
-            if (!user) {
-                return res.status(401).json({ error: 'User not found' });
-            }
-            if (user.password !== password) {
-                return res.status(401).json({ error: 'Incorrect password' });
-            }
+  try {
+    // Check if the user exists
+    const user = await UserAccount.findOne({ username });
 
-            // Send role information in the response
-            res.json({
-                message: user.role === 1 ? 'Admin logged in' : 'Registered user logged in',
-                token: 'your_generated_token', // Add token generation logic here
-                role: user.role
-            });
-        })
-        .catch(err => res.status(500).json({ error: err.message }));
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Validate password
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign({ userId: user._id }, config.jwtSecret, {
+      expiresIn: '1h' // Token expires in 1 hour
+    });
+
+    // Send token and user information as response
+    res.json({ token, user });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 module.exports = router;

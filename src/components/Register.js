@@ -1,5 +1,7 @@
+// Register.js
+
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from '../axios'; // Correct path to axios.js
 import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
@@ -21,9 +23,9 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/register', formData);
+      const response = await axios.post('/register', formData); // Correct endpoint usage
 
-      if (response.status === 200) {
+      if (response.status === 201) {
         alert('Registration successful');
         navigate('/login');
       } else {

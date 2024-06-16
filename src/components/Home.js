@@ -1,7 +1,9 @@
+// src/components/Home.js
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-const HomePage = () => {
+const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
 
@@ -25,8 +27,8 @@ const HomePage = () => {
         {isLoggedIn && <h1 className="text-2xl font-bold mb-4">Welcome to My App User</h1>}
         <div className="space-y-4">
           {isLoggedIn ? (
-            <button 
-              onClick={handleLogout} 
+            <button
+              onClick={handleLogout}
               className="block text-center bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
             >
               Logout
@@ -47,4 +49,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default Home;

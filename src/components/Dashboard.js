@@ -1,27 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate from react-router-dom
 
 const Dashboard = () => {
-  const [username, setUsername] = useState('');
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate(); // Initialize useNavigate hook
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/userInfo');
+        const token = localStorage.getItem('token'); // Assuming token is stored in localStorage after login
 
-        if (response.status === 200) {
-          setUsername(response.data.username);
-          setLoading(false);
-        } else {
-          console.error('Failed to fetch user info');
-          setLoading(false);
-        }
+        const response = await axios.get('http://localhost:5000/api/profile', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setUserData(response.data);
       } catch (error) {
         console.error('Error fetching user info:', error);
-        setLoading(false);
+        setError('Error fetching user info');
       }
     };
 
@@ -31,30 +31,28 @@ const Dashboard = () => {
   const handleLogout = async () => {
     try {
       localStorage.removeItem('token'); // Remove token from localStorage
-      navigate('/login'); // Redirect to login page
+      setUserData(null); // Clear userData state
+      navigate('/'); // Redirect to the home page using navigate
     } catch (error) {
       console.error('Logout error:', error);
+      // Handle error if needed
     }
   };
 
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (!userData) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <div>
-            <p>Welcome to the protected dashboard, {username}!</p>
-            <button
-              onClick={handleLogout}
-              className="mt-4 w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
-            >
-              Logout
-            </button>
-          </div>
-        )}
-      </div>
+    <div>
+      <h2>Welcome to your Dashboard</h2>
+      <p>User Name: {userData.username}</p>
+      <p>Email: {userData.email}</p>
+      <button onClick={handleLogout}>Logout</button>
     </div>
   );
 };

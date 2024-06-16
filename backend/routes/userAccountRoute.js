@@ -1,61 +1,41 @@
-const router = require('express').Router();
+// backend/routes/userAccountRoute.js
+const express = require('express');
+const router = express.Router();
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const UserAccount = require('../models/userAccountModel');
+const config = require('../config');
 
-// Get all users
-router.get('/', async (req, res) => {
-    try {
-        const users = await UserAccount.find();
-        res.json(users);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-});
+// Route to login user
+router.post('/login', async (req, res) => {
+  const { username, password } = req.body;
 
-// Get user by username
-router.get('/:username', async (req, res) => {
-    const username = req.params.username;
-    try {
-        const user = await UserAccount.findOne({ username });
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        res.json(user);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-});
+  try {
+    // Check if the user exists
+    const user = await UserAccount.findOne({ username });
 
-// Update user by username
-router.put('/:username', async (req, res) => {
-    const username = req.params.username;
-    const { email, password } = req.body;
-    try {
-        const updatedUser = await UserAccount.findOneAndUpdate(
-            { username },
-            { email, password },
-            { new: true }
-        );
-        if (!updatedUser) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        res.json(updatedUser);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
-});
 
-// Delete user by username
-router.delete('/:username', async (req, res) => {
-    const username = req.params.username;
-    try {
-        const deletedUser = await UserAccount.findOneAndDelete({ username });
-        if (!deletedUser) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        res.json({ message: 'User deleted successfully' });
-    } catch (err) {
-        res.status(400).json({ error: err.message });
+    // Validate password
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
+
+    // Generate JWT token
+    const token = jwt.sign({ userId: user._id }, config.jwtSecret, {
+      expiresIn: '1h' // Token expires in 1 hour
+    });
+
+    // Send token as response
+    res.json({ token, user });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 module.exports = router;

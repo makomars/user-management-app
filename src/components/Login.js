@@ -1,5 +1,7 @@
+// Login.js
+
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from '../axios'; // Correct path to axios.js
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
@@ -7,8 +9,9 @@ const Login = () => {
     username: '',
     password: ''
   });
+  const [error, setError] = useState('');
 
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Use navigate hook from react-router-dom
 
   const handleChange = (e) => {
     setFormData({
@@ -20,30 +23,28 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/login', formData);
+      const response = await axios.post('/login', formData); // Correct endpoint usage
 
       if (response.status === 200) {
-        alert('Login successful');
-        localStorage.setItem('token', response.data.token);
+        const { token, user } = response.data;
+        console.log('Login successful:', user);
+        localStorage.setItem('token', token);
 
-        // Determine where to navigate based on the role
-        if (response.data.role === 1) {
-          // Admin logged in, navigate to dashboard
-          navigate('/dashboard');
-        } else {
-          // Registered user logged in, navigate to homepage
-          navigate('/');
+        if (user.role === 0) {
+          navigate('/'); // Navigate to Home
+        } else if (user.role === 1) {
+          navigate('/dashboard'); // Navigate to Dashboard
         }
       } else {
-        alert('Login failed'); // This part is likely not needed
+        setError('Login failed');
       }
     } catch (error) {
-      console.error('Login error:', error.response.data);
+      console.error('Login error:', error);
 
       if (error.response && error.response.status === 401) {
-        alert(error.response.data.error); // Display specific error message from backend
+        setError('Invalid credentials');
       } else {
-        alert('An error occurred during login'); // Generic error message
+        setError('An error occurred during login');
       }
     }
   };
@@ -75,6 +76,7 @@ const Login = () => {
               required
             />
           </div>
+          {error && <p className="text-red-500">{error}</p>}
           <button type="submit" className="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
             Login
           </button>

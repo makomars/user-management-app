@@ -1,20 +1,39 @@
-const router = require('express').Router();
-let UserAccount = require('../models/userAccountModel');
+// backend/routes/userRegistrationRoute.js
 
-// Registration route
-router.route('/').post((req, res) => {
-    const { username, email, password } = req.body;
+const express = require('express');
+const router = express.Router();
+const bcrypt = require('bcrypt');
+const UserAccount = require('../models/userAccountModel');
 
-    const newUser = new UserAccount({ 
-        username, 
-        email, 
-        password,
-        role: 0 // Default role for registered users
+router.post('/', async (req, res) => {
+  const { username, email, password } = req.body;
+
+  try {
+    // Check if the user exists
+    let user = await UserAccount.findOne({ username });
+
+    if (user) {
+      return res.status(400).json({ error: 'Username already exists' });
+    }
+
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create new user
+    user = new UserAccount({
+      username,
+      email,
+      password: hashedPassword
     });
 
-    newUser.save()
-        .then(() => res.json('User registered!'))
-        .catch(err => res.status(400).json('Error: ' + err));
+    await user.save();
+
+    res.status(201).json({ message: 'User registered successfully' });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 module.exports = router;

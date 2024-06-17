@@ -1,5 +1,3 @@
-// Login.js
-
 import React, { useState } from 'react';
 import axios from '../axios'; // Correct path to axios.js
 import { useNavigate } from 'react-router-dom';
@@ -49,6 +47,10 @@ const Login = () => {
     }
   };
 
+  const handleGoBack = () => {
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
@@ -79,6 +81,9 @@ const Login = () => {
           {error && <p className="text-red-500">{error}</p>}
           <button type="submit" className="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
             Login
+          </button>
+          <button type="button" onClick={handleGoBack} className="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 mt-2">
+            Go Back
           </button>
         </form>
       </div>

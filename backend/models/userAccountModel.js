@@ -1,4 +1,5 @@
-// backend/models/userAccountModel.js
+// userAccountModel.js
+
 const mongoose = require('mongoose');
 
 const userAccountSchema = new mongoose.Schema({

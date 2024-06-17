@@ -1,5 +1,3 @@
-// Register.js
-
 import React, { useState } from 'react';
 import axios from '../axios'; // Correct path to axios.js
 import { useNavigate } from 'react-router-dom';
@@ -35,6 +33,10 @@ const Register = () => {
       console.error('Registration error:', error);
       alert('An error occurred during registration');
     }
+  };
+
+  const handleGoBack = () => {
+    navigate('/');
   };
 
   return (
@@ -77,6 +79,9 @@ const Register = () => {
           </div>
           <button type="submit" className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
             Register
+          </button>
+          <button type="button" onClick={handleGoBack} className="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 mt-2">
+            Go Back
           </button>
         </form>
       </div>

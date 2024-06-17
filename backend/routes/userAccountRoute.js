@@ -1,39 +1,83 @@
-// backend/routes/userAccountRoute.js
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const UserAccount = require('../models/userAccountModel');
-const config = require('../config');
+const requireAuth = require('../Middleware/requireAuth'); // Import your requireAuth middleware
+const UserAccount = require('../models/userAccountModel'); // Adjust path as needed
 
-// Route to login user
-router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-
+// Route to get all users (Read operation)
+router.get('/', requireAuth, async (req, res) => {
   try {
-    // Check if the user exists
-    const user = await UserAccount.findOne({ username });
+    const users = await UserAccount.find();
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
+// Route to get a specific user by username (Read operation)
+router.get('/:username', requireAuth, async (req, res) => {
+  const username = req.params.username;
+  try {
+    const user = await UserAccount.findOne({ username });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user by username:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
-    // Validate password
-    const passwordMatch = await bcrypt.compare(password, user.password);
+// Route to register a new user (Create operation)
+router.post('/register', requireAuth, async (req, res) => {
+  const { username, email, password, role } = req.body;
 
-    if (!passwordMatch) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    // Generate JWT token
-    const token = jwt.sign({ userId: user._id }, config.jwtSecret, {
-      expiresIn: '1h' // Token expires in 1 hour
+  try {
+    const newUser = new UserAccount({
+      username,
+      email,
+      password,
+      role
     });
 
-    // Send token as response
-    res.json({ token, user });
+    await newUser.save();
+    res.status(201).json(newUser);
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Error creating user:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Route to update a user by username (Update operation)
+router.put('/:username', requireAuth, async (req, res) => {
+  const username = req.params.username;
+  const { email, role } = req.body;
+
+  try {
+    const updatedUser = await UserAccount.findOneAndUpdate({ username }, { email, role }, { new: true });
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Route to delete a user by username (Delete operation)
+router.delete('/:username', requireAuth, async (req, res) => {
+  const username = req.params.username;
+
+  try {
+    const deletedUser = await UserAccount.findOneAndDelete({ username });
+    if (!deletedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

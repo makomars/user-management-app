@@ -45,6 +45,12 @@ app.use('/api/register', userRegistrationRoute);
 app.use('/api/profile', profileRoute);
 app.use('/api/users', userAccountRoute);
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err.message);
+  res.status(500).json({ error: 'Server error' });
+});
+
 // Catch-all route for 404 errors
 app.use((req, res) => {
   res.status(404).send('404: Page not found');

@@ -72,8 +72,11 @@ const Dashboard = () => {
         },
       });
       fetchUsers(); // After successful delete, fetch updated user list
+      alert(`Deleted user ${username} successfully.`);
+      setError(null); // Reset error state
     } catch (error) {
       console.error('Error deleting user:', error);
+      setError('Error deleting user');
     }
   };
 
@@ -101,8 +104,11 @@ const Dashboard = () => {
 
       fetchUsers(); // After successful add, fetch updated user list
       setNewUser({ username: '', email: '', password: '' }); // Reset the newUser state
+      alert('User added successfully.');
+      setError(null); // Reset error state
     } catch (error) {
       console.error('Error adding user:', error);
+      setError('Error adding user');
     }
   };
 
@@ -121,8 +127,11 @@ const Dashboard = () => {
 
       fetchUsers(); // After successful update, fetch updated user list
       setUpdateUser({ username: '', email: '', role: 0 }); // Reset the updateUser state
+      alert('User updated successfully.');
+      setError(null); // Reset error state
     } catch (error) {
       console.error('Error updating user:', error);
+      setError('Error updating user');
     }
   };
 
